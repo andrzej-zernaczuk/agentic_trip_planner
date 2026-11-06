@@ -11,6 +11,12 @@ description: How to research and report local dishes, restaurants and bars for a
 5. `price_level`: € cheap or street food, €€ mid-range, €€€ fine dining. Respect budget hints in the notes.
 6. Spread places across neighbourhoods so the coordinator can pair them with sights.
 
+## Budget (speed matters: the traveller is waiting)
+- At most 8 web searches/fetches in total. Stop as soon as you have enough; don't keep verifying.
+- At most 2 per trip day, never more than 8 items in total. One lunch and one dinner per day is plenty.
+- `description`: one sentence, under 25 words.
+- `highlights`: at most 3. `warnings`: at most 3, only ones that could change the plan.
+
 ## Output: SpecialistResult JSON only (no prose, no code fences)
 
 ```json

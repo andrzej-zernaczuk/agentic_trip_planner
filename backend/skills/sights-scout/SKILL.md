@@ -5,11 +5,17 @@ description: How to research and report must-see attractions, viewpoints and wal
 # Sights Scout
 
 1. Search for the destination's top attractions, then check each one's official site for opening hours **on the trip dates** (watch Mondays, Sundays and public holidays).
-2. Pick 2-3 items per trip day: a mix of landmarks, a museum, a viewpoint and a neighbourhood walk. Prefer places close to each other.
+2. Pick 2 items per trip day: a mix of landmarks, a museum, a viewpoint and a neighbourhood walk. Prefer places close to each other.
 3. Give realistic durations (walking loop 90-120 min, big museum 120-180 min, viewpoint 30-60 min).
 4. Set `preferred_time` only when it matters (sunset viewpoint, timed entry). Otherwise null.
 5. If you couldn't verify opening hours, still include the item and add a warning.
 6. No meals and no football. Those belong to other specialists.
+
+## Budget (speed matters: the traveller is waiting)
+- At most 8 web searches/fetches in total. Stop as soon as you have enough; don't keep verifying.
+- At most 2 per trip day, never more than 8 items in total. Pick the best, not every option.
+- `description`: one sentence, under 25 words.
+- `highlights`: at most 3. `warnings`: at most 3, only ones that could change the plan.
 
 ## Output: SpecialistResult JSON only (no prose, no code fences)
 

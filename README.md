@@ -286,7 +286,7 @@ Why the coordinator goes last: a roster entry without a version pins the special
 **at the moment the coordinator is saved**. Re-saving the coordinator picks up new specialist versions.
 
 **Configuration:**
-- **Models:** coordinator `claude-opus-5-5`, specialists and critic `claude-sonnet-5-5` (`common.py`).
+- **Models:** coordinator, specialists and critic all `claude-sonnet-5-5` (`common.py`). The coordinator was switched from `claude-opus-5-5` for a faster merge; switch it back there if plan quality drops.
 - **Tools:** specialists get the full agent toolset, including web search and fetch. The coordinator has web tools **off** (it must not research) and the pre-built `docx` skill for the stretch export.
 - **Permissions:** all tools run under the `auto` policy. `swarm.py` **denies** any call that pauses for approval, because nobody is watching.
 - **Multi-agent config:** `multiagent_20261001` with the specialists as the only roster (`inline_agents` disabled).

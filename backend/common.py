@@ -18,7 +18,7 @@ OUTPUT_DIR = BACKEND_DIR / "outputs"
 load_dotenv(BACKEND_DIR.parent / ".env")
 load_dotenv(BACKEND_DIR / ".env")
 
-COORDINATOR_MODEL = "claude-opus-5-5"
+COORDINATOR_MODEL = "claude-sonnet-5-5"
 SPECIALIST_MODEL = "claude-sonnet-5-5"
 
 # Role key -> agent name. The names are what session events report (`agent_name`),
