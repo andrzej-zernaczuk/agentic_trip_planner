@@ -1,0 +1,155 @@
+{
+  "plan_id": "mock01",
+  "destination": "Valencia, Spain",
+  "start_date": "2026-11-20",
+  "end_date": "2026-11-22",
+  "summary": "Three days of old town, paella by the sea and a night at Mestalla.",
+  "agents_used": ["sights", "food", "football"],
+  "days": [
+    {
+      "date": "2026-11-20",
+      "title": "Old town & first paella",
+      "items": [
+        {
+          "time": "10:00",
+          "duration_min": 120,
+          "title": "Ciutat Vella walking loop",
+          "description": "Cathedral, Miguelete tower, La Lonja de la Seda and the Central Market.",
+          "category": "sights",
+          "agent": "sights",
+          "location": "Ciutat Vella",
+          "price_level": "€",
+          "source_url": "https://www.visitvalencia.com/en/what-to-see-valencia/ciutat-vella"
+        },
+        {
+          "time": "12:30",
+          "duration_min": 45,
+          "title": "Horchata & fartons at Santa Catalina",
+          "description": "Classic tiger-nut drink with sweet pastry sticks, a Valencian staple.",
+          "category": "food",
+          "agent": "food",
+          "location": "Plaça de Santa Caterina",
+          "price_level": "€",
+          "source_url": "https://www.horchateriasantacatalina.com"
+        },
+        {
+          "time": "14:00",
+          "duration_min": 90,
+          "title": "Paella valenciana lunch",
+          "description": "Traditional chicken-and-rabbit paella; book ahead, paella is a lunch dish here.",
+          "category": "food",
+          "agent": "food",
+          "location": "El Cabanyal",
+          "price_level": "€€",
+          "source_url": null
+        },
+        {
+          "time": null,
+          "duration_min": 90,
+          "title": "Sunset at Malvarrosa beach",
+          "description": "Flexible: walk the promenade back towards the port.",
+          "category": "sights",
+          "agent": "sights",
+          "location": "Platja de la Malva-rosa",
+          "price_level": null,
+          "source_url": null
+        }
+      ]
+    },
+    {
+      "date": "2026-11-21",
+      "title": "Science city & matchday",
+      "items": [
+        {
+          "time": "10:00",
+          "duration_min": 180,
+          "title": "City of Arts and Sciences",
+          "description": "Calatrava's futuristic complex; the Oceanogràfic needs a timed ticket.",
+          "category": "sights",
+          "agent": "sights",
+          "location": "Ciutat de les Arts i les Ciències",
+          "price_level": "€€",
+          "source_url": "https://www.cac.es/en/"
+        },
+        {
+          "time": "14:00",
+          "duration_min": 75,
+          "title": "Tapas at Mercado de Colón",
+          "description": "Modernista market hall with several tapas counters.",
+          "category": "food",
+          "agent": "food",
+          "location": "Eixample",
+          "price_level": "€€",
+          "source_url": null
+        },
+        {
+          "time": "19:00",
+          "duration_min": 60,
+          "title": "Pre-match drinks near Mestalla",
+          "description": "Bars on Avinguda de Suècia fill up with fans two hours before kick-off.",
+          "category": "football",
+          "agent": "football",
+          "location": "Avinguda de Suècia",
+          "price_level": "€",
+          "source_url": null
+        },
+        {
+          "time": "21:00",
+          "duration_min": 150,
+          "title": "Valencia CF home match (La Liga)",
+          "description": "Kick-off time TBC by the league; check the club site the week before.",
+          "category": "football",
+          "agent": "football",
+          "location": "Estadio de Mestalla",
+          "price_level": "€€",
+          "source_url": "https://www.valenciacf.com"
+        }
+      ]
+    },
+    {
+      "date": "2026-11-22",
+      "title": "Turia gardens & Albufera",
+      "items": [
+        {
+          "time": "09:30",
+          "duration_min": 120,
+          "title": "Bike the Turia gardens",
+          "description": "9 km park in the old riverbed, from Bioparc to the City of Arts and Sciences.",
+          "category": "sights",
+          "agent": "sights",
+          "location": "Jardí del Túria",
+          "price_level": "€",
+          "source_url": null
+        },
+        {
+          "time": "13:30",
+          "duration_min": 120,
+          "title": "Lunch in El Palmar",
+          "description": "Village in the Albufera rice fields, the birthplace of paella. Try arròs negre.",
+          "category": "food",
+          "agent": "food",
+          "location": "El Palmar, Albufera",
+          "price_level": "€€",
+          "source_url": null
+        },
+        {
+          "time": "16:30",
+          "duration_min": 60,
+          "title": "Albufera boat ride",
+          "description": "Traditional flat-bottomed boat on the lagoon.",
+          "category": "other",
+          "agent": "sights",
+          "location": "Albufera Natural Park",
+          "price_level": "€",
+          "source_url": null
+        }
+      ]
+    }
+  ],
+  "highlights": {
+    "sights": ["Climb the Miguelete tower for the best old-town view"],
+    "food": ["Try: paella valenciana, horchata with fartons, arròs negre"],
+    "football": ["Valencia CF home match on Saturday; kick-off time not yet confirmed"]
+  },
+  "warnings": ["Opening hours not verified for Sunday", "Match kick-off time TBC"]
+}

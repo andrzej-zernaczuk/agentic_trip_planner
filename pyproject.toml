@@ -1,11 +1,11 @@
 [project]
-name = "heist-crew"
+name = "wanderswarm"
 version = "0.1.0"
-description = "Hackathon game: an AI crew plans a heist while one of them is secretly the traitor."
+description = "Hackathon POC: a coordinator agent and specialist sub-agents (Managed Agents) plan a day-by-day trip."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "anthropic>=0.40.0",
+    "anthropic>=2.6.0",
     "python-dotenv>=1.0.0",
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.30.0",

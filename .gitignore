@@ -221,3 +221,11 @@ __marimo__/
 
 # MacOS folder
 .DS_Store
+# Wanderswarm: generated agent/environment IDs and run outputs
+backend/.state/
+backend/outputs/
+.specialist_ids.json
+.coordinator_id
+.environment_id
+.skill_ids.json
+.last_session_id
