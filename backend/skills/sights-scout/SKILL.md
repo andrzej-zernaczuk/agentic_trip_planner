@@ -12,8 +12,9 @@ description: How to research and report must-see attractions, viewpoints and wal
 6. No meals and no football. Those belong to other specialists.
 
 ## Budget (speed matters: the traveller is waiting)
-- At most 8 web searches/fetches in total. Stop as soon as you have enough; don't keep verifying.
-- At most 2 per trip day, never more than 8 items in total. Pick the best, not every option.
+- D = number of trip days, start and end inclusive (the brief states it).
+- At most 2 + 2×D web searches/fetches in total (3 days: 8, 7 days: 16). Stop as soon as you have enough; don't keep verifying.
+- Exactly 2 items per trip day, so 2×D in total (7 days: 14). Every day needs its own pair; don't stop early.
 - `description`: one sentence, under 25 words.
 - `highlights`: at most 3. `warnings`: at most 3, only ones that could change the plan.
 

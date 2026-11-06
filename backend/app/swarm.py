@@ -10,6 +10,7 @@ import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import date
 from typing import Any
 
 from common import AGENT_KEYS, client, require_state
@@ -46,8 +47,12 @@ class SwarmResult:
 
 
 def build_user_message(req: TripRequest, plan_id: str) -> str:
+    days = (
+        date.fromisoformat(req.end_date) - date.fromisoformat(req.start_date)
+    ).days + 1
     msg = (
-        f"Plan a trip to {req.destination} from {req.start_date} to {req.end_date}.\n"
+        f"Plan a trip to {req.destination} from {req.start_date} to {req.end_date}"
+        f" ({days} days, both dates inclusive). Tell each specialist it is {days} days.\n"
         f"Use ONLY these specialists, in parallel: {', '.join(req.interests)}.\n"
         f"Notes: {req.notes or 'none'}.\n"
         f'Return ONLY the TripPlan JSON with plan_id "{plan_id}".'

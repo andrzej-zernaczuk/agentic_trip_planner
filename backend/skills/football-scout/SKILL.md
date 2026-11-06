@@ -14,8 +14,10 @@ description: How to find and report football matches, stadium tours and football
    `highlights`. Big clubs' reserve/B teams often play in lower divisions at a smaller ground nearby.
 
 ## Budget (speed matters: the traveller is waiting)
-- At most 10 web searches/fetches in total. Spend them on fixtures first, tours and bars last. Stop as soon as you have enough; don't keep verifying.
-- At most 4 items in total. At most one match per day, plus at most one stadium tour and one football bar.
+- D = number of trip days, start and end inclusive (the brief states it).
+- At most 7 + D web searches/fetches in total (3 days: 10, 7 days: 14). Spend them on fixtures first, tours and bars last. Stop as soon as you have enough; don't keep verifying.
+- At most one match per trip day, plus at most one stadium tour and one football bar.
+  Football is optional: returning fewer items is fine, never pad with made-up fixtures.
 - `description`: one sentence, under 25 words.
 - `highlights`: at most 3. `warnings`: at most 3, only ones that could change the plan.
 
