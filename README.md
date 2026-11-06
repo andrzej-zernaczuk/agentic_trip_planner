@@ -53,6 +53,15 @@ Keep speeches to 2 to 3 sentences.
 - **Models:** a fast, cheap model for the crew and a stronger one for the Game Master.
 - **Secrets:** API key in a `.env` file, never committed.
 
+## Setup (uv)
+
+```bash
+uv sync                      # creates .venv with Python 3.13 and installs deps from uv.lock
+cp .env.example .env         # then put your ANTHROPIC_API_KEY in .env
+uv run python <script>.py    # run anything inside the project env
+uv add <package>             # add a dependency (updates pyproject.toml + uv.lock; commit both)
+```
+
 ## Repo layout
 
 ```
