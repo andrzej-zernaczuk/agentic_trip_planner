@@ -22,7 +22,7 @@ from common import BACKEND_DIR
 
 URL = "https://nominatim.openstreetmap.org/search"
 USER_AGENT = (
-    "Wanderswarm/0.1 (hackathon POC; https://github.com/andrzej-zernaczuk/heist_crew)"
+    "Wanderswarm/0.1 (hackathon POC; https://github.com/andrzej-zernaczuk/agentic_trip_planner)"
 )
 MIN_INTERVAL_S = 1.1  # policy: max 1 request per second
 TIMEOUT_S = 8

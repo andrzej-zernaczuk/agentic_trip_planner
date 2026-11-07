@@ -71,7 +71,7 @@ not change the roster.
 ## 3. Repo layout
 
 ```
-heist_crew/                       (repo; project name: Wanderswarm)
+agentic_trip_planner/                      (repo; project name: Wanderswarm)
 ├── README.md                     ← this file (the contract)
 ├── pyproject.toml / uv.lock      ← one uv project for the backend (Python 3.13, anthropic>=2.6)
 ├── .env                          ← ANTHROPIC_API_KEY (gitignored)
