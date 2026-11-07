@@ -224,6 +224,7 @@ __marimo__/
 # Wanderswarm: generated agent/environment IDs and run outputs
 backend/.state/
 backend/outputs/
+backend/.cache/
 .specialist_ids.json
 .coordinator_id
 .environment_id

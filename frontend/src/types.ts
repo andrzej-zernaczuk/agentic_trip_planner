@@ -42,9 +42,29 @@ export interface TripPlan {
   warnings: string[];
 }
 
+/** One specialist's raw picks, before the coordinator schedules them (README 5). */
+export interface SpecialistItem {
+  title: string;
+  description?: string;
+  preferred_date?: string | null;
+  preferred_time?: string | null;
+  duration_min?: number | null;
+  location?: string | null;
+  price_level?: PriceLevel | null;
+  source_url?: string | null;
+}
+
+export interface SpecialistResult {
+  agent: string;
+  items: SpecialistItem[];
+  highlights: string[];
+  warnings: string[];
+}
+
 export type SwarmEvent =
   | { type: "agent_started"; agent: string; message: string }
   | { type: "agent_finished"; agent: string; message: string }
+  | { type: "agent_result"; agent: string; result: SpecialistResult }
   | { type: "log"; agent: string; message: string }
   | { type: "result"; plan: TripPlan }
   | { type: "error"; message: string };

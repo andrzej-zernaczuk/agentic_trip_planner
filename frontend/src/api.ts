@@ -1,4 +1,5 @@
-import type { PlanRequest, SwarmEvent, TripPlan } from "./types";
+import type { PlanRequest, SpecialistResult, SwarmEvent, TripPlan } from "./types";
+import type { LatLng } from "./travel";
 import mockPlan from "./mock/plan.json";
 
 const API = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -57,6 +58,28 @@ async function pollPlan(id: string): Promise<TripPlan> {
   }
 }
 
+export interface GeocodeResult {
+  /** Coordinates per place key; null = not found. */
+  places: Record<string, LatLng | null>;
+  /** Keys not looked up because the geocoder was busy or down: ask again later. */
+  pending: string[];
+}
+
+/** Mock mode has no geocoder: every place is "not found" and commutes use rough defaults. */
+export async function geocode(
+  destination: string,
+  places: { key: string; title: string; location: string | null }[],
+): Promise<GeocodeResult> {
+  if (USE_MOCK || places.length === 0) return { places: Object.fromEntries(places.map((p) => [p.key, null])), pending: [] };
+  const r = await fetch(`${API}/api/geocode`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ destination, places }),
+  });
+  if (!r.ok) throw new Error(`POST /api/geocode failed: ${r.status}`);
+  return r.json();
+}
+
 export function docxUrl(id: string): string {
   return `${API}/api/plan/${id}/docx`;
 }
@@ -90,12 +113,30 @@ function replayMock(req: PlanRequest, onEvent: (e: SwarmEvent) => void): () => v
     [300, { type: "agent_started", agent: "coordinator", message: `Planning ${city}` }],
     ...specialists.map((a, i): [number, SwarmEvent] => [800 + i * 250, { type: "log", agent: "coordinator", message: `Briefing ${a}` }]),
     ...specialists.map((a): [number, SwarmEvent] => [1000 + n * 250, { type: "agent_started", agent: a, message: started[a] }]),
-    ...specialists.map((a, i): [number, SwarmEvent] => [3500 + i * 1100, { type: "agent_finished", agent: a, message: finished[a] }]),
+    ...specialists.flatMap((a, i): [number, SwarmEvent][] => [
+      [3500 + i * 1100, { type: "agent_finished", agent: a, message: finished[a] }],
+      [3500 + i * 1100, { type: "agent_result", agent: a, result: mockResult(plan, a) }],
+    ]),
     [4000 + n * 1100, { type: "log", agent: "coordinator", message: `Merging results into ${plan.days.length} days` }],
-    [5500 + n * 1100, { type: "agent_finished", agent: "coordinator", message: "Plan ready" }],
-    [5600 + n * 1100, { type: "result", plan }],
+    // Long merge on purpose, so the specialists' tabs can be browsed before the plan lands.
+    [8500 + n * 1100, { type: "agent_finished", agent: "coordinator", message: "Plan ready" }],
+    [8600 + n * 1100, { type: "result", plan }],
   ];
 
   const timers = events.map(([ms, e]) => setTimeout(() => onEvent(e), ms));
   return () => timers.forEach(clearTimeout);
+}
+
+/** Rebuilds a specialist's raw picks from the mock plan (mirrors mock_specialist_result in main.py). */
+function mockResult(plan: TripPlan, agent: string): SpecialistResult {
+  return {
+    agent,
+    items: plan.days.flatMap((d) =>
+      d.items
+        .filter((i) => i.agent === agent)
+        .map((i) => ({ ...i, preferred_date: d.date, preferred_time: i.time })),
+    ),
+    highlights: plan.highlights[agent] ?? [],
+    warnings: [],
+  };
 }

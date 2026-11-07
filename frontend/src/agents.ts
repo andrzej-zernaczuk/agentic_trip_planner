@@ -13,6 +13,7 @@ export const AGENT_META: Record<string, AgentMeta> = {
   football: { label: "Football", icon: "⚽", color: "#22c55e" },
   critic: { label: "Critic", icon: "🔍", color: "#a855f7" },
   other: { label: "Other", icon: "📍", color: "#64748b" },
+  you: { label: "You", icon: "✍️", color: "#db2777" },
 };
 
 const DEFAULT_META: AgentMeta = { label: "Agent", icon: "🤖", color: "#64748b" };

@@ -17,7 +17,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import ValidationError
 
-from app.models import PlanCreated, PlanRequest, TripPlan
+from app import geocode
+from app.models import (
+    GeocodeRequest,
+    GeocodeResponse,
+    PlanCreated,
+    PlanRequest,
+    TripPlan,
+)
 from app.swarm import TripRequest, run_swarm
 from common import BACKEND_DIR, OUTPUT_DIR
 from download_deliverable import download_session_files
@@ -79,6 +86,8 @@ async def run_real(state: PlanState, req: PlanRequest, plan_id: str) -> None:
     loop = asyncio.get_running_loop()
 
     def emit(event: dict[str, Any]) -> None:
+        if event["type"] == "agent_result":  # geocode while the coordinator merges
+            geocode.warm(req.destination, event["result"]["items"])
         loop.call_soon_threadsafe(state.push, event)
 
     trip = TripRequest(**req.model_dump())
@@ -108,6 +117,31 @@ async def run_real(state: PlanState, req: PlanRequest, plan_id: str) -> None:
     state.push({"type": "result", "plan": validate_plan(result.plan, plan_id)})
 
 
+def mock_specialist_result(plan: dict, agent: str) -> dict:
+    """Rebuild a SpecialistResult for `agent` from the mock TripPlan's items."""
+    items = [
+        {
+            "title": i["title"],
+            "description": i["description"],
+            "preferred_date": day["date"],
+            "preferred_time": i["time"],
+            "duration_min": i["duration_min"],
+            "location": i["location"],
+            "price_level": i["price_level"],
+            "source_url": i["source_url"],
+        }
+        for day in plan["days"]
+        for i in day["items"]
+        if i["agent"] == agent
+    ]
+    return {
+        "agent": agent,
+        "items": items,
+        "highlights": plan["highlights"].get(agent, []),
+        "warnings": [],
+    }
+
+
 async def run_mock(state: PlanState, req: PlanRequest, plan_id: str) -> None:
     plan = json.loads(MOCK_PLAN.read_text())
     events: list[dict[str, Any]] = [
@@ -125,8 +159,16 @@ async def run_mock(state: PlanState, req: PlanRequest, plan_id: str) -> None:
             for a in req.interests
         ),
         *(
-            {"type": "agent_finished", "agent": a, "message": "Done (mock)"}
+            e
             for a in req.interests
+            for e in (
+                {"type": "agent_finished", "agent": a, "message": "Done (mock)"},
+                {
+                    "type": "agent_result",
+                    "agent": a,
+                    "result": mock_specialist_result(plan, a),
+                },
+            )
         ),
         {
             "type": "log",
@@ -136,8 +178,12 @@ async def run_mock(state: PlanState, req: PlanRequest, plan_id: str) -> None:
         {"type": "agent_finished", "agent": "coordinator", "message": "Plan ready"},
     ]
     for e in events:
-        await asyncio.sleep(1)
+        # agent_result rides along with its agent_finished.
+        await asyncio.sleep(0 if e["type"] == "agent_result" else 1)
+        if e["type"] == "agent_result":  # same early geocoding as the real swarm
+            geocode.warm(plan["destination"], e["result"]["items"])
         state.push(e)
+    await asyncio.sleep(4)  # long enough to browse the specialists' picks first
     state.push({"type": "result", "plan": validate_plan(plan, plan_id)})
 
 
@@ -202,3 +248,21 @@ async def plan_docx(plan_id: str) -> FileResponse:
     return FileResponse(
         state.docx, media_type=DOCX_MIME, filename=f"wanderswarm-{plan_id}.docx"
     )
+
+
+@app.post("/api/geocode")
+async def geocode_places(req: GeocodeRequest) -> GeocodeResponse:
+    """Coordinates per place key (null = not found), for commute estimates. README 4.6.
+    Keys in `pending` weren't looked up (geocoder unavailable); ask again later."""
+    found = await asyncio.to_thread(
+        geocode.lookup_many,
+        req.destination,
+        [(p.title, p.location) for p in req.places],
+    )
+    out = GeocodeResponse()
+    for p, c in zip(req.places, found, strict=True):
+        if c == geocode.PENDING:
+            out.pending.append(p.key)
+        else:
+            out.places[p.key] = c
+    return out

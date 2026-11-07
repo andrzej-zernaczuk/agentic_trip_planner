@@ -92,11 +92,13 @@ heist_crew/                       (repo; project name: Wanderswarm)
 │   │   └── football-scout/SKILL.md
 │   ├── app/
 │   │   ├── swarm.py              ← run_swarm(): opens a session, maps events → SSE dicts, parses TripPlan
-│   │   ├── main.py               ← TODO: FastAPI app, routes, CORS, SSE, MOCK=1
-│   │   └── models.py             ← TODO: Pydantic models (mirror section 5)
+│   │   ├── main.py               ← FastAPI app, routes, CORS, SSE, MOCK=1
+│   │   ├── models.py             ← Pydantic models (mirror section 5)
+│   │   └── geocode.py            ← OpenStreetMap Nominatim lookups for commute times (4.6)
 │   ├── run_trip.py               ← CLI smoke test: one trip, events printed, plan → outputs/
 │   ├── download_deliverable.py   ← pulls files (e.g. trip.docx) from a session
 │   ├── .state/                   ← generated IDs (gitignored)
+│   ├── .cache/geocode.json       ← geocoding cache (gitignored)
 │   └── outputs/                  ← run outputs (gitignored)
 └── frontend/                     ← FRONTEND TEAM (TODO)
     ├── package.json
@@ -104,9 +106,14 @@ heist_crew/                       (repo; project name: Wanderswarm)
         ├── api.ts                ← fetch + EventSource, switches mock/real via env
         ├── types.ts              ← TS types (mirror section 5)
         ├── agents.ts             ← label / icon / colour per agent and category
+        ├── format.ts             ← date / duration formatting
+        ├── planEdits.ts          ← pure helpers for editing the plan + scheduleDay()
+        ├── travel.ts             ← commute estimate between two coordinates
         ├── components/
         │   ├── TripForm.tsx
         │   ├── AgentProgress.tsx
+        │   ├── Results.tsx       ← top tabs: plan + one per specialist
+        │   ├── AgentPicks.tsx    ← one specialist's raw picks
         │   └── Itinerary.tsx
         └── mock/plan.json        ← copy of shared/mock_plan.json
 ```
@@ -147,12 +154,16 @@ A Server-Sent Events stream. Each `data:` line is one JSON event:
 ```json
 { "type": "agent_started",  "agent": "food",   "message": "Looking for local dishes in Valencia" }
 { "type": "agent_finished", "agent": "food",   "message": "Found 6 places" }
+{ "type": "agent_result",   "agent": "food",   "result": { ...SpecialistResult... } }
 { "type": "log",            "agent": "coordinator", "message": "Merging results into 3 days" }
 { "type": "result",         "plan": { ...TripPlan... } }
 { "type": "error",          "message": "Football agent timed out" }
 ```
 - The stream closes after a `result` or `error` event.
 - The frontend lights up an agent card on `agent_started` and ticks it on `agent_finished`.
+- `agent_result` follows a specialist's `agent_finished` and carries its raw picks (`SpecialistResult`,
+  section 5). The frontend opens that agent's tab right away, so people can browse it while the
+  coordinator is still merging. Sent only when the specialist's reply parses as JSON.
 
 ### 4.3 `GET /api/plan/{plan_id}`: final result (fallback, polling)
 
@@ -171,6 +182,19 @@ fetches it with the `download_deliverable.py` logic (`client.beta.files.list(sco
 
 - Backend: `MOCK=1` returns `shared/mock_plan.json` and fake events spaced about 1 s apart. **Build this first** so the frontend can integrate early.
 - Frontend: `VITE_USE_MOCK=true` reads `src/mock/plan.json` and simulates the events locally.
+
+### 4.6 `POST /api/geocode`: coordinates for commute times
+
+Request: `{ "destination": "Valencia, Spain", "places": [{ "key": "…", "title": "…", "location": "…" }] }`
+(max 80 places; `key` is the client's id and is echoed back).
+Response: `{ "places": { "<key>": { "lat": 39.47, "lng": -0.37 } | null }, "pending": ["<key>"] }`.
+`null` = not found. `pending` = not looked up because the geocoder was busy or down: ask again later.
+
+- Backed by OpenStreetMap **Nominatim**. Its usage policy is enforced in `geocode.py`: max 1 request/s
+  (one global lock), an identifying User-Agent, and a disk cache (`backend/.cache/geocode.json`, misses
+  included). Searches are limited to ~40 km around the destination, and the hit nearest the centre wins.
+- Lookups start in the background on each `agent_result` (also in `MOCK=1`), so most places are cached
+  by the time the merged plan arrives. A new place costs ~1–4 s (several name variants are tried).
 
 ---
 
@@ -244,7 +268,8 @@ fetches it with the `download_deliverable.py` logic (`client.beta.files.list(sco
 }
 ```
 
-The frontend never sees `SpecialistResult`. Only the backend and the agents use it.
+The frontend receives each `SpecialistResult` in the `agent_result` SSE event (4.2) and shows it in that
+agent's tab before the merged plan exists. Treat every item field except `title` as optional.
 
 ---
 
@@ -320,7 +345,7 @@ await queue.put({"type": "result", "plan": result.plan} if result.plan
 | (session created) | `agent_started` for `coordinator` |
 | `session.thread_created` | `agent_started` (`agent` = role key, mapped from `agent_name` via `AGENT_KEYS` in `common.py`) |
 | `agent.thread_message_sent` | `log` from `coordinator`: "Briefed {agent}. Waiting for {pending}" |
-| `agent.thread_message_received` | `agent_finished` for the agent that reported back, with a count from its `SpecialistResult` ("Found 6 places to eat (2 warnings)"), then a coordinator `log` ("Waiting for …" / "All specialists reported…") |
+| `agent.thread_message_received` with a parseable `SpecialistResult` | `agent_finished` with a count ("Found 6 places to eat (2 warnings)"), then `agent_result` with the result, then a coordinator `log` ("Waiting for …" / "All specialists reported…"). Replies that aren't a `SpecialistResult` (progress notes) are ignored; a briefed agent that never sends one gets `agent_finished` when the turn ends |
 | `agent.message` | the last text block becomes the final output (no SSE event) |
 | `session.status_idle` (not `requires_action`) | parse the output; `agent_finished` for `coordinator` |
 
@@ -367,8 +392,25 @@ npm run dev
 
 1. **`TripForm`**: destination, start and end dates, interest checkboxes (sights / food / football), notes. On submit, `POST /api/plan` and open the event stream.
 2. **`AgentProgress`** (the demo moment): one card per agent, with states `idle → working → done / error`. Show the latest `message`. Coordinator card on top, specialists in a row below, mirroring the diagram.
-3. **`Itinerary`**: tabs or columns per day. Each item shows time, title, description, a category icon, the **agent badge**, price level and a source link. Highlights and warnings go in a side panel.
-4. *(stretch)* "Download .docx" button → `/api/plan/{id}/docx`. A map of item locations.
+3. **`Results`**: top tabs: **📅 Day-by-day plan** plus one tab per specialist. A specialist's tab opens
+   as soon as its `agent_result` arrives (`AgentPicks`: picks grouped by suggested day, its highlights and
+   warnings). The view follows the data until the user clicks a tab; after that it stays put, and the plan
+   tab is highlighted when the plan lands.
+4. **`Itinerary`** (the plan tab): tabs per day. **✏️ Edit plan** turns on editing, client-side only
+   (`planEdits.ts`; nothing is sent back to the backend and a refresh discards it). In edit mode you can
+   drag to reorder, drop on another day's tab to move an item there, use ↑/↓ and "Move to…", edit the time,
+   remove an item, and add your own (`agent: "you"`, shown as "Added by you"). The specialists' tabs get
+   "Add to plan", and "Reset to original" brings back the coordinator's plan. Edits are kept when
+   switching tabs.
+   **Commutes:** every place is located via `/api/geocode` (4.6) and the commute between consecutive
+   activities is estimated from the distance (`travel.ts`: walk up to 2 km, else transit/taxi; 20 min if a
+   place couldn't be located). It's shown between activities, with a warning when the gap is too short.
+   **Rescheduling** (rules at the top of `planEdits.ts`): a day nobody edited keeps the coordinator's
+   times. An edited day is rescheduled back to back: from the day's original start, each activity starts
+   when the previous one ends plus the commute; lunch not before 12:30, dinner not before 19:30. 🔒 items
+   never move (football matches are locked by default; typing a time locks it). Times are derived, so they
+   update by themselves when coordinates arrive. Each item shows time, title, description, a category icon, the **agent badge**, price level and a source link. Highlights and warnings go in a side panel.
+5. *(stretch)* "Download .docx" button → `/api/plan/{id}/docx`. A map of item locations.
 
 ### `api.ts` sketch
 

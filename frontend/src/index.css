@@ -83,6 +83,16 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 .tabs button small { font-weight: 400; color: var(--muted); }
 .tabs button.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, white); }
+.top-tabs { border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 18px; }
+.top-tabs button:not(:first-child).active { border-color: var(--c); background: color-mix(in srgb, var(--c) 10%, white); }
+.top-tabs button.pending { opacity: 0.6; }
+.top-tabs button.pending small::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 5px;
+  border-radius: 50%; background: var(--c); animation: blink 1s ease-in-out infinite; vertical-align: middle; }
+.top-tabs button.fresh { border-color: var(--accent); animation: pulse 1.4s ease-in-out 3; --c: var(--accent); }
+@keyframes blink { 50% { opacity: 0.2; } }
+.picks-note { font-size: 0.85rem; color: var(--muted); margin-bottom: 12px; }
+.pick-group + .pick-group { margin-top: 16px; }
+.pick-group h4 { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em; }
 .items { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
 .item { display: grid; grid-template-columns: 72px 1fr; gap: 12px; border-left: 4px solid var(--c); padding: 10px 12px; background: #f8fafc; border-radius: 0 10px 10px 0; }
 .item-time { font-weight: 700; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
@@ -111,3 +121,37 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   .field.wide, .field:first-child, .trip-form button { grid-column: span 2; }
   .itin-grid { grid-template-columns: 1fr; }
 }
+
+/* Plan editing */
+.edit-toolbar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.edited-tag { font-size: 0.75rem; font-weight: 600; color: #db2777; background: #fce7f3; padding: 2px 8px; border-radius: 999px; }
+button.ghost { background: none; color: var(--accent); padding: 6px 10px; }
+.edit-hint { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+.item.editable { cursor: grab; position: relative; grid-template-columns: 108px 1fr; }
+.item.editable::before { content: "⠿"; position: absolute; left: -2px; top: 10px; color: var(--muted); font-size: 0.9rem; transform: translateX(-100%); padding-right: 6px; }
+.item.dragging { opacity: 0.4; }
+.item.drop-before { box-shadow: 0 -3px 0 0 var(--accent); }
+.item.drop-after { box-shadow: 0 3px 0 0 var(--accent); }
+.tabs button.drop-target { border-color: var(--accent); border-style: dashed; background: color-mix(in srgb, var(--accent) 14%, white); }
+.edit-row { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.edit-row button, .edit-row select { font-size: 0.78rem; padding: 4px 10px; border-radius: 7px; background: #fff; color: #0f172a; border: 1px solid var(--border); font-weight: 500; font-family: inherit; }
+.edit-row button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.edit-row button.danger:hover { border-color: #ef4444; color: #ef4444; }
+.added { font-size: 0.8rem; color: #16a34a; font-weight: 600; }
+.time-input { width: 100%; padding: 3px 6px; font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.late { font-size: 0.78rem; color: #b45309; margin: 4px 0 0; }
+.drop-zone { border: 2px dashed var(--accent); border-radius: 10px; text-align: center; }
+.add-btn { margin-top: 12px; background: none; color: var(--accent); border: 1px dashed var(--accent); width: 100%; }
+.add-form { display: grid; grid-template-columns: 2fr 1fr 0.8fr 1.2fr; gap: 8px; margin-top: 12px; padding: 12px; border: 1px dashed var(--accent); border-radius: 10px; }
+.add-form select { font: inherit; padding: 8px; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.add-form .wide { grid-column: span 3; }
+.add-form input[aria-label="Location"] { grid-column: span 4; }
+.add-actions { display: flex; justify-content: flex-end; gap: 6px; grid-column: span 1; }
+.add-actions button { padding: 6px 14px; }
+.item.editable.fixed { cursor: default; }
+.item.editable.fixed::before { content: "🔒"; font-size: 0.75rem; }
+.edit-row button.locked { border-color: #a16207; color: #a16207; background: #fefce8; }
+.items .leg { list-style: none; font-size: 0.78rem; color: var(--muted); padding: 0 0 0 84px; margin: -4px 0; }
+.items .leg.warn { color: #b45309; }
+.items .leg strong { margin-left: 8px; font-weight: 600; }
+.geo-status { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }

@@ -95,12 +95,23 @@ FOUND_NOUN = {
 }
 
 
-def _finished_message(key: str, content: list) -> str:
-    """Summarise a SpecialistResult reply, e.g. "Found 6 places to eat (2 warnings)"."""
+def _parse_result(key: str, content: list) -> dict | None:
+    """The specialist's SpecialistResult (README 5), or None if its reply isn't one."""
     text = "".join(b.text for b in content if getattr(b, "type", None) == "text")
     result = extract_json(text)
     if result is None or not isinstance(result.get("items"), list):
-        return "Reported back"
+        return None
+    items = [i for i in result["items"] if isinstance(i, dict) and i.get("title")]
+    return {
+        "agent": key,
+        "items": items,
+        "highlights": [h for h in result.get("highlights") or [] if isinstance(h, str)],
+        "warnings": [w for w in result.get("warnings") or [] if isinstance(w, str)],
+    }
+
+
+def _finished_message(key: str, result: dict) -> str:
+    """Summarise a SpecialistResult reply, e.g. "Found 6 places to eat (2 warnings)"."""
     n = len(result["items"])
     noun = FOUND_NOUN.get(key, "items")
     msg = f"Found {n} {noun}" if n else f"No {noun} found for these dates"
@@ -163,14 +174,19 @@ def _stream_turn(
                 )
             elif t == "agent.thread_message_received":
                 key = _agent_key(event.from_agent_name)
-                if not key.startswith("anthropic."):
+                result = _parse_result(key, event.content)
+                # Specialists often send a progress note before their result; only the
+                # SpecialistResult itself counts as finished.
+                if result is not None and not key.startswith("anthropic."):
                     emit(
                         {
                             "type": "agent_finished",
                             "agent": key,
-                            "message": _finished_message(key, event.content),
+                            "message": _finished_message(key, result),
                         }
                     )
+                    # Lets the UI show this agent's picks before the merge (README 4.2).
+                    emit({"type": "agent_result", "agent": key, "result": result})
                     if key in pending:
                         pending.remove(key)
                         emit(
@@ -209,6 +225,14 @@ def _stream_turn(
             elif t == "session.status_terminated":
                 warnings.append("Session terminated early.")
                 break
+    for key in pending:  # briefed but never sent a readable SpecialistResult
+        emit(
+            {
+                "type": "agent_finished",
+                "agent": key,
+                "message": "Finished without a readable result",
+            }
+        )
     return "".join(last_text), warnings
 
 

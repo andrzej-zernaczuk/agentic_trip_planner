@@ -27,6 +27,27 @@ class PlanCreated(BaseModel):
     plan_id: str
 
 
+class Place(BaseModel):
+    key: str  # client-chosen id, echoed back
+    title: str
+    location: str | None = None
+
+
+class GeocodeRequest(BaseModel):
+    destination: str = Field(min_length=1)
+    places: list[Place] = Field(max_length=80)
+
+
+class LatLng(BaseModel):
+    lat: float
+    lng: float
+
+
+class GeocodeResponse(BaseModel):
+    places: dict[str, LatLng | None] = {}
+    pending: list[str] = []
+
+
 class TripItem(BaseModel):
     time: str | None = None
     duration_min: int | None = None

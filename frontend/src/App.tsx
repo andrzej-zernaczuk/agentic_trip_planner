@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import type { AgentState, PlanRequest, SwarmEvent, TripPlan } from "./types";
+import type { AgentState, PlanRequest, SpecialistResult, SwarmEvent, TripPlan } from "./types";
 import { USE_MOCK, startPlan, streamPlan } from "./api";
 import { TripForm } from "./components/TripForm";
 import { AgentProgress } from "./components/AgentProgress";
-import { Itinerary } from "./components/Itinerary";
+import { Results } from "./components/Results";
 
 type Phase = "form" | "running" | "done" | "error";
 
@@ -11,7 +11,9 @@ export default function App() {
   const [phase, setPhase] = useState<Phase>("form");
   const [agents, setAgents] = useState<Record<string, AgentState>>({});
   const [log, setLog] = useState<string[]>([]);
+  const [results, setResults] = useState<Record<string, SpecialistResult>>({});
   const [plan, setPlan] = useState<TripPlan | null>(null);
+  const [runId, setRunId] = useState(0); // remounts Results (and its tab choice) per trip
   const [error, setError] = useState<string | null>(null);
   const unsubscribe = useRef<(() => void) | null>(null);
 
@@ -24,6 +26,9 @@ export default function App() {
         break;
       case "agent_finished":
         setAgents((a) => ({ ...a, [e.agent]: { status: "done", message: e.message } }));
+        break;
+      case "agent_result":
+        setResults((r) => ({ ...r, [e.agent]: e.result }));
         break;
       case "log":
         setLog((l) => [...l, e.message]);
@@ -48,6 +53,8 @@ export default function App() {
   const submit = async (req: PlanRequest) => {
     unsubscribe.current?.();
     setPlan(null);
+    setResults({});
+    setRunId((n) => n + 1);
     setError(null);
     setLog([]);
     setAgents({
@@ -76,7 +83,7 @@ export default function App() {
 
       {phase !== "form" && <AgentProgress agents={agents} log={log} />}
       {error && <div className="error-banner">{error}</div>}
-      {plan && <Itinerary plan={plan} />}
+      {phase !== "form" && <Results key={runId} agents={agents} results={results} plan={plan} error={error} />}
     </main>
   );
 }
